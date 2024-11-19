@@ -2,7 +2,7 @@
 verbose = True
 # Data
 testing_mode = True
-target_sps = 20
+target_sps = 1
 edf_path = '/media/davide/T9/super_useful_dataset/downloaded_files/V3/APNEA_EDF'
 rml_path = '/media/davide/T9/super_useful_dataset/downloaded_files/V3/APNEA_RML_clean'
 apnea_path = '/media/davide/T9/ecg_apnea/ApneaData.pkl'

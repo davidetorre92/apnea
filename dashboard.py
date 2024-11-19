@@ -88,7 +88,7 @@ app.layout = html.Div([
                     marks={i: f"{i:.0f}" for i in range(1)},
                     tooltip={"placement": "bottom", "always_visible": False},
                 )
-            ], style={"display": "inline-block", "verticalAlign": "top"},
+            ], style={"display": "block", "verticalAlign": "top"},
             id="x-range-slider-container"
                 )
     ], style={"display": "none", "flexDirection": "column"})
