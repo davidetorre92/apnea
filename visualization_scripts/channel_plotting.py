@@ -5,30 +5,46 @@ import os
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
-import pyedflib
-from settings import testing_mode, images_path
+from utils.utils import print_progress, print_time, create_folder
+from utils.preprocessing import get_signals
+from utils.signals import resample_signals
+from settings import verbose, testing_mode, edf_path, images_directory
 
-# Replace 'your_file.edf' with the path to your EDF file
-edf_file = "./downloaded_files/00001394-100507%5B002%5D.edf"
+edf_filename = "00001701-100507/00001701-100507[002].edf"
+labels = ["ECG I", "Snore", "SpO2", "PulseRate", "Mic", "Tracheal", "Flow Patient"]
+target_sps = 500
 
-# Open the EDF file
-f = pyedflib.EdfReader(edf_file)
+def plot_channels(sigs):
+    # Set plot
+    fig, axs = plt.subplots(len(sigs), 1, figsize=(15, 10), sharex=True)
+    # Set truncation time to 60 seconds
+    length_to_plot = target_sps * 60
+    for i, (k, v) in enumerate(sigs.items()):
+        # Normalize time to seconds
+        time = np.arange(0, len(v[0])) / v[1]
+        # Truncate the signal to 60 seconds
+        time = time[:length_to_plot]
 
-# Get the number of signals (channels)
-num_signals = f.signals_in_file
+        axs[i].plot(time, v[0][:length_to_plot], linewidth=0.2)
+        axs[i].set_ylabel(k)
+        axs[i].set_xlim([0, time[-1]])
+        axs[i].grid()
 
-# Get the sampling frequency
-sampling_frequency = f.getSampleFrequency(0)
+    fig.suptitle("EDF file: " + edf_filename)
+    axs[-1].set_xlabel("Time (s)")
+    fig.tight_layout()
 
-# Get the signal labels
-signal_labels = f.getSignalLabels()
+    return fig, axs
+def main():
+    edf_file_path = os.path.join(edf_path, edf_filename)
+    signals, sampling_frequencies, signal_labels = get_signals(edf_file_path, labels)
+    sigs = {signal_labels[i]: (signals[i], sampling_frequencies[i]) for i in range(len(signals)) if signal_labels[i] in labels}
+    resampled_sigs = resample_signals(sigs, target_sps)
+    fig, axs = plot_channels(resampled_sigs)
+    img_path = os.path.join(images_directory, "signal_plot.png")
+    create_folder(img_path)
+    fig.savefig(img_path)
+    if verbose: print_time(f"Plot saved to {img_path}")
 
-# Read the signals
-signals = []
-sampling_frequencies = []
-for i in range(num_signals):
-    signals.append(f.readSignal(i))
-    sampling_frequencies.append(f.getSampleFrequency(i))
-
-# Close the EDF file
-f.close()
+if __name__ == "__main__":
+    main()
