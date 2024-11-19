@@ -87,9 +87,16 @@ def process_signals_for_plot(sigs):
     return processed_sigs
 
 def process_events_for_plot(events):
-    return_events = {type: {'data': [], 'order': order_id} for order_id, type in enumerate(events["Type"].unique())}
+    return_events = {}
+    order_id = 0
     for type in events["Type"].unique():
         event_df = events[events["Type"] == type]
-        for index, row in event_df.iterrows():
-            return_events[type]['data'].append([row['Start'], row['Start'] + row['Duration']])
+        if events[events["Type"] == type].shape[0] > 0:
+            return_events[type] = {
+                "data": [],
+                "order": order_id
+            }
+            order_id += 1
+            for _, row in event_df.iterrows():
+                return_events[type]['data'].append([row['Start'], row['Start'] + row['Duration']])
     return return_events
