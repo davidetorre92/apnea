@@ -2,6 +2,7 @@ import xml.etree.ElementTree as ET
 import pyedflib
 import numpy as np
 import pandas as pd
+import os
 from .utils import print_time, print_progress
 
 def preprocess_events(rml_path, verbose = True):
@@ -37,7 +38,7 @@ def preprocess_events(rml_path, verbose = True):
     events_df = pd.DataFrame(event_data)
     return events_df
 
-def get_signals(edf_file_path, labels = ["ECG I", "Snore", "SpO2", "PulseRate", "Mic", "Tracheal"], target_sps = np.inf, verbose = True):
+def get_signals(edf_file_path, labels = ["ECG I", "Snore", "SpO2", "PulseRate", "Mic", "Tracheal"], verbose = True):
     def report_signal_data(signals, sampling_frequencies, signal_labels):
         num_signals = len(signals)
         print_time("Signal reporting:")
@@ -48,15 +49,16 @@ def get_signals(edf_file_path, labels = ["ECG I", "Snore", "SpO2", "PulseRate", 
                 print(f"{signal_labels[i]}\t{len(signals[i])} points @ {sampling_frequencies[i]} sps")        
 
     # Get the path
-    if verbose: print_time(f"Opening file {edf_file_path}...")
-    # Open the EDF file
+    if verbose:
+        print_time(f"Opening file {edf_file_path}...")
+        # Open the EDF file
+        if os.path.exists(edf_file_path) is False:
+            raise FileNotFoundError(f"File {edf_file_path} not found")
+
     f = pyedflib.EdfReader(edf_file_path)
 
     # Get the number of signals (channels)
     num_signals = f.signals_in_file
-
-    # Get the sampling frequency
-    sampling_frequency = f.getSampleFrequency(0)
 
     # Get the signal labels
     signal_labels = f.getSignalLabels()
@@ -80,3 +82,14 @@ def get_signals(edf_file_path, labels = ["ECG I", "Snore", "SpO2", "PulseRate", 
         report_signal_data(signals, sampling_frequencies, signal_labels)
     return signals, sampling_frequencies, signal_labels
 
+def process_signals_for_plot(sigs):
+    processed_sigs = {k: (np.arange(0, len(v[0]), 1) / v[1], v[0]) for k, v in sigs.items()}
+    return processed_sigs
+
+def process_events_for_plot(events):
+    return_events = {type: {'data': [], 'order': order_id} for order_id, type in enumerate(events["Type"].unique())}
+    for type in events["Type"].unique():
+        event_df = events[events["Type"] == type]
+        for index, row in event_df.iterrows():
+            return_events[type]['data'].append([row['Start'], row['Start'] + row['Duration']])
+    return return_events

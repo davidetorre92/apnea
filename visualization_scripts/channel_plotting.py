@@ -12,7 +12,7 @@ from settings import verbose, testing_mode, edf_path, images_directory
 
 edf_filename = "00001701-100507/00001701-100507[002].edf"
 labels = ["ECG I", "Snore", "SpO2", "PulseRate", "Mic", "Tracheal", "Flow Patient"]
-target_sps = 500
+target_sps = 20
 
 def plot_channels(sigs):
     # Set plot

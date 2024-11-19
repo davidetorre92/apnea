@@ -9,8 +9,6 @@ from scipy.signal import resample, butter, filtfilt
 import pyedflib
 
 def resample_signals(sigs, target_sps):
-    if target_sps is np.inf:
-        return sigs
     # Resampling sps
     cutoff_freq = target_sps / 3  # Less than half of the target_sps frequency
     filter_order = 6  # Third order filter
